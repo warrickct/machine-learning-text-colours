@@ -10,6 +10,7 @@
         <div id="example">The text in this area will change to white or black depending on the background colour.
             Machine learning is used to determine whether the background is dark or light.
         </div>
+        <button id="trainButton">Wrong text colour</button>
 
         <script src="https://unpkg.com/brain.js@1.1.2/browser.min.js"></script>
         
@@ -34,10 +35,11 @@
         <script>
             const input = document.querySelector("input");
             const example = document.querySelector("#example");
+            const trainButton = document.querySelector("#trainButton");
+            var lastRgb;
+            var lastResult;
             
-            const network = new brain.NeuralNetwork();
-
-                network.train([
+            var trainInput = [
                     { input: { r: 0.62, g: 0.72, b: 0.88 }, output: { light: 1 } },
                     { input: { r: 0.1, g: 0.84, b: 0.72 }, output: { light: 1 } },
                     { input: { r: 0.33, g: 0.24, b: 0.29 }, output: { dark: 1 } },
@@ -46,16 +48,32 @@
                     { input: {r: 1, g: 0.99, b: 0}, output: { light: 1 } },
                     { input: {r: 1, g: 0.42, b: 0.52}, output: { dark: 1 } },
                     { input: {r: 0, g: 0.63, b: 0.28}, output: { dark: 1 } },
-                ]);
+                ];
+
+            const network = new brain.NeuralNetwork();
+            network.train(trainInput);
 
             input.addEventListener("change", (e) => {
                 const rgb = getRgb(e.target.value);
                 console.log(rgb);
+                lastRgb = rgb;
                 const result = brain.likely(rgb, network);
                 console.log(result);
+                lastResult = result;
                 example.style.background = e.target.value;
                 example.style.color = result == "dark" ? "white" : "black";
-            })
+            });
+
+            trainButton.addEventListener("click", function(){
+                    console.log(lastRgb, lastResult);
+                    var newResult = lastResult == "light" ? { dark: 1 } : { light: 1};
+                    trainInput.push({
+                        input: lastRgb,
+                        output: newResult
+                    });
+                    console.log(newResult);
+                    network.train(trainInput);
+                });
         </script>
     </body>
 </html>
